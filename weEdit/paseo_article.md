@@ -1,104 +1,142 @@
 # 我现在用手机指挥三个 AI 写代码
 
-上周四晚上十点多，我躺在沙发上用手机给 Claude Code 发了句"把那个 auth 模块的测试补上"，然后去洗澡了。洗完出来一看，测试写好了，CI 也过了。
+上周四晚上，我窝在沙发上用手机给 Claude Code 发了句"把 auth 模块的测试补上"，扔下手机去洗了个澡。出来一看——测试写好了，CI 过了。
 
-这个体验让我有点恍惚——半年前我还在三个终端窗口之间 alt-tab，盯着 Claude Code 等它跑完再切到 Codex 那边看看，现在我在手机上点两下就行了。
+就这么个小事，让我意识到自己的工作方式已经变了。半年前我还在三个终端之间 alt-tab，现在我在手机上点两下就行了。
 
-让这件事成为可能的东西叫 Paseo。
+这篇聊聊让这件事变得可能的工具——Paseo。
 
-## 先说我为什么需要它
+---
 
-我不是那种只用一个 AI 工具的人。Claude Code 思考深但慢，适合做设计和重构；Codex 手脚快，适合批量写实现和测试；OpenCode 我偶尔拿来做 review。三个工具各有长处，但问题是——它们彼此不认识。
+## 先说问题出在哪
 
-每个都有自己的终端、自己的权限弹窗、自己的生命周期。我在 A 窗口等 Claude 跑，B 窗口的 Codex 可能早就卡在一个权限确认上了，但我根本没注意到。出门买杯咖啡回来，经常发现有个 Agent 空等了二十分钟。
+我不是只用一个 AI 编程工具的人。Claude Code 想得深但出活慢，适合做架构设计和复杂重构；Codex 手脚快，批量写实现和测试很顺手；OpenCode 我偶尔拿来做 code review。
 
-这不是某个工具的问题，是"同时管多个 Agent"这件事本身没人管。
+每个都好用，但放在一起就不好用了。
 
-Paseo 就是干这个的。
+三个工具三个终端窗口，各有各的权限弹窗，彼此不知道对方的存在。我在 A 窗口等 Claude 跑着，B 窗口的 Codex 可能已经卡在权限确认上了——但我压根没注意到。中午出去吃个饭，回来经常发现某个 Agent 空等了半小时。
 
-## 它到底怎么工作的
+这不是哪个工具做得不好，是"同时管多个 AI Agent"这件事本身缺一个管理层。
 
-说白了，Paseo 在你机器上跑一个常驻进程（它叫 Daemon），所有 AI Agent 都由这个 Daemon 统一启动和管理。然后你的手机、桌面 App、网页、命令行，都只是连接到这个 Daemon 的"遥控器"。
+![没有 Paseo vs 用了 Paseo](https://raw.githubusercontent.com/haodafa/image/main/weEdit/card_before_after.png)
 
-这个设计带来一个关键好处：**你关掉 App，Agent 还在跑。** 不像直接开终端跑 Claude Code，一不小心关了窗口就全没了。Daemon 在后台盯着呢。
+---
 
-安装也没什么门槛，两行命令：
+## Paseo 是什么
+
+用它自己的话说：
+
+> One interface for all your Claude Code, Codex and OpenCode agents.
+> Run agents in parallel on your own machines. Ship from your phone or your desk.
+
+翻译成人话：在你自己的电脑上跑一个后台服务，统一管理所有 AI 编程 Agent。手机、桌面、网页、命令行都能连上去操控。
+
+不是云服务，不是套壳 ChatGPT，不采集数据，不需要注册账号。代码和对话内容始终在你自己的机器上。
+
+![Paseo 核心能力](https://raw.githubusercontent.com/haodafa/image/main/weEdit/card_features.png)
+
+---
+
+## 它怎么做到的
+
+核心是一个叫 Daemon 的常驻后台进程。所有 AI Agent 都由这个 Daemon 统一启动和管理。手机 App、桌面应用、网页、命令行，本质上都是连到这个 Daemon 的"遥控器"。
+
+![Paseo 架构](https://raw.githubusercontent.com/haodafa/image/main/weEdit/card_architecture.png)
+
+这个设计带来一个关键好处：**关掉任何客户端，Agent 还在跑。** 不像直接在终端跑 Claude Code，窗口一关全没了。
+
+安装没什么门槛：
 
 ```bash
 npm install -g @getpaseo/cli
 paseo
 ```
 
-它会自动检测你机器上装了哪些 Agent CLI（Claude Code、Codex、OpenCode），直接复用你已有的 API Key 配置。不需要再配一遍。
+它会自动检测你机器上装了哪些 Agent CLI（Claude Code、Codex、OpenCode），直接复用你已有的 API Key，不用再配一遍。
 
-## 手机端不是摆设
+---
 
-很多工具的手机端就是个通知查看器，能看不能操作。Paseo 的手机端是真的能干活——创建任务、审批权限、看实时输出、追加指令，该有的都有。扫个二维码就连上了。
+## 手机端能干活，不是只能看
 
-我现在的日常是这样的：早上到工位，在桌面端规划今天要做的事，把几个任务扔给不同的 Agent。中午出去吃饭，手机上扫一眼，哪个跑完了、哪个卡住了，一目了然。遇到权限确认就顺手点一下。下午回来继续在桌面端 review 结果。
+很多工具的移动端就是个通知查看器，Paseo 的手机端是真的能操作——创建任务、审批权限、看实时输出、追加指令。连接方式也简单，桌面端扫个二维码就行。
 
-不是说这个功能多么颠覆性，就是方便。那种"终于不用在电脑前守着等 Agent 跑完"的方便。
+Paseo 官方的手机端截图：
 
-## 命令行才是灵魂
+![Paseo 手机端](https://paseo.sh/mobile-mockup.png)
 
-虽然 App 做得不错，但我觉得 Paseo 真正的杀手锏是它的 CLI。整套命令长得跟 Docker 几乎一样：
+我现在的日常大概是这样：早上到工位，在桌面端把几个任务分给不同的 Agent。中午出去吃饭，手机上瞄一眼谁跑完了、谁卡住了，需要审批的顺手点一下。下午回来 review 结果。
 
-```bash
-# 后台跑两个 Agent，各干各的
-api_id=$(paseo run -d --provider claude/opus-4.6 "实现认证 API" -q)
-ui_id=$(paseo run -d --provider codex/gpt-5.4 "写登录页面" -q)
+不算什么颠覆，就是不用守着电脑等 Agent 了。
 
-# 等它们都跑完
-paseo wait "$api_id"
-paseo wait "$ui_id"
+---
 
-# 对某个 Agent 追加指令
-paseo send "$api_id" "补上单元测试"
-```
+## 命令行是真正的灵魂
 
-`run`、`ls`、`logs`、`wait`、`stop`——用过 Docker 的人闭着眼就能上手。
+App 做得不错，但我觉得 Paseo 最值得说的是它的 CLI。整套命令跟 Docker 几乎一个味道——`run`、`ls`、`logs`、`wait`、`stop`——用过 Docker 的人闭着眼就能上手。
 
-这意味着什么？意味着你可以把 Agent 编排写进脚本。我现在有个 shell 脚本，每次提 PR 之前自动启动三个 Agent：一个跑 lint，一个跑测试，一个做 code review。跑完自动汇总结果。以前这些事要开三个终端手动盯，现在一个脚本搞定。
+![Paseo CLI](https://raw.githubusercontent.com/haodafa/image/main/weEdit/card_cli.png)
 
-这种"把 AI Agent 当进程管理"的思路，在我目前见过的工具里，只有 Paseo 做得比较彻底。
+这意味着你可以把 Agent 编排写进脚本。我现在有个 shell 脚本，提 PR 之前自动起三个 Agent：一个跑 lint，一个跑测试，一个做 code review，跑完汇总结果。以前这些事要开三个终端手动盯，现在一个脚本搞定。
 
-## 编排功能：有意思但还糙
+Paseo 官方也举了类似的例子：
 
-Paseo 有个 Loop 模式，逻辑很简单：让一个 Agent 写代码，跑测试，没过就重来，设个上限防止死循环。
+> ```bash
+> paseo run --provider claude/opus-4.6 "implement user authentication"
+> paseo run --provider codex/gpt-5.4 --worktree feature-x "implement feature X"
+> paseo ls                           # list running agents
+> paseo attach abc123                # stream live output
+> paseo send abc123 "also add tests" # follow-up task
+> ```
 
-```bash
-paseo loop run \
-  --verify "npm test" \
-  --max-iterations 5 \
-  "修复失败的测试用例"
-```
+这种"把 AI Agent 当进程管理"的思路，在我用过的工具里，只有 Paseo 做到了比较完整的程度。
 
-我用它修过几个不太复杂的 bug，效果还行。但说实话，复杂一点的问题它会在几轮之间反复横跳——第二轮改的东西把第一轮修好的又搞坏了。这不是 Paseo 的锅，是当前 Agent 本身的能力局限，但确实不能太指望"扔进去就不用管了"。
+---
 
-它还有个 Orchestrator 模式，可以组建 Agent 团队——Claude 负责规划，Codex 负责实现，互相通过一个 Chat Room 协调。概念很酷，但标记为 Unstable，我试了几次，偶尔会出现 Agent 之间鸡同鸭讲的情况。当作实验性功能玩玩可以，生产环境还得再等等。
+## 编排功能：有意思，但别抱太高期望
+
+Paseo 有一个 Loop 模式，逻辑不复杂：让 Agent 写代码，跑测试，没过就重来，设个上限防止死循环。
+
+![Loop 编排流程](https://raw.githubusercontent.com/haodafa/image/main/weEdit/card_loop.png)
+
+我拿它修过几个不太复杂的 bug，体验还行——扔进去，设个上限 5 轮，去干别的事，回来一看修好了。
+
+但得说实话，稍微复杂一点的问题，它会在几轮之间来回横跳——第二轮改的东西把第一轮修好的又搞坏了。这不完全是 Paseo 的问题，更多是当前 AI Agent 本身的能力天花板。不能指望"扔进去就不管了"。
+
+Paseo 还有个更激进的 Orchestrator 模式，可以组建 Agent "团队"——Claude 做规划、Codex 做实现，通过 Chat Room 协调。官方把这叫 "Ralph loops"。概念很酷，但标记着 Unstable，我试了几次，Agent 之间偶尔会鸡同鸭讲。当作实验性功能玩玩就好。
+
+---
 
 ## 几个值得一提的细节
 
-**Worktree 隔离。** 你可以让不同的 Agent 在不同的 Git Worktree 里干活，各改各的分支，不会打架。这个功能在并行开发多个 feature 的时候特别有用。
+**Worktree 隔离。** 一条 `--worktree feature-x` 参数，Agent 就在独立的 Git Worktree 里干活。两个 Agent 并行改同一个仓库的不同分支，不打架。
 
-**Provider 之间的模式映射。** Claude 的 Plan 模式自动对应 Codex 的 Read-only 模式，Full Access 对 Full Access。你不用去记每个工具的权限术语。
+**Provider 模式映射。** Claude 的 Plan 模式自动对应 Codex 的 Read-only，Full Access 对 Full Access。在不同 Agent 之间切换不用去记各家的权限术语。
 
-**数据全在本地。** 所有东西存在 `~/.paseo/` 下面，就是一堆 JSON 文件。没有遥测，没有强制登录，没有任何数据上传。远程连接用的是端到端加密，中继服务器看不到内容。对于在公司内网搞开发的人来说，这一点很重要。
+**数据全在本地。** `~/.paseo/` 下一堆 JSON 文件，人类可读，想看就看。没有遥测，没有强制登录。远程连接走端到端加密（ECDH + AES-256-GCM），中继服务器是零知识设计。
 
-## 不适合谁
+**项目还在早期。** v0.1.x 阶段，核心功能已经稳了，但编排类 API 还在快速迭代。心理预期要有。
 
-说完好话得说实话。
+---
 
-如果你只用 Claude Code 一个工具，而且就在桌面上用，那 Paseo 对你来说就是多余的一层。直接在终端跑 Claude Code 就完事了，加个 Daemon 中间层反而多此一举。
+## 谁该试试，谁可以不用
 
-另外，项目还在 v0.1.x 阶段。虽然核心功能（Agent 管理、多端、CLI）已经很稳了，但编排类功能还在快速迭代，API 可能会变。心理预期要有。
+![适合你吗？](https://raw.githubusercontent.com/haodafa/image/main/weEdit/card_fit.png)
 
-## 最后
+---
 
-我不会说 Paseo 是什么"划时代产品"，它做的事情其实很朴素——给多个 AI 编程 Agent 提供一个统一的管理层。但就是这么一个看起来不起眼的东西，实实在在地改变了我的工作方式。
+## 写在最后
 
-以前我同时开三个 Agent，心智负担很重，总怕漏看哪个的状态。现在我把任务往 Paseo 里一扔，该干嘛干嘛，有空了回来看看结果就行。
+我不想给 Paseo 贴什么"划时代"的标签。它做的事情很朴素——给多个 AI 编程 Agent 套了一层统一管理。
 
-这大概就是好工具该有的样子——你不会整天想着它，但没有它你又会很难受。
+但就是这么个不起眼的东西，切切实实改变了我每天的工作节奏。以前同时开三个 Agent，心智负担不小，总怕漏看哪个的输出。现在任务往 Paseo 里一扔，该干嘛干嘛，有空了回来看结果。
 
-项目地址：GitHub 搜索 `getpaseo/paseo`，AGPL-3.0 开源。
+工具好不好用有个简单的判断标准：你不会整天惦记它，但没了它你会很不习惯。Paseo 对我来说就是这样。
+
+项目开源，AGPL-3.0 协议：**github.com/getpaseo/paseo**
+
+快速上手只需要两步：
+
+```bash
+npm install -g @getpaseo/cli
+paseo
+```
